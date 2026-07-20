@@ -1,0 +1,12 @@
+# MicroPython 固件（从 micropython.org 下载，不入库）
+*.bin
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# 本地临时
+*.log
