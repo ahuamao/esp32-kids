@@ -90,9 +90,43 @@ mpremote connect PORT reset
 - 网页 → 板：UTF-8 代码文本，末尾加一个 `\x04` (EOT) 表示"发完，执行"。>180 字节自动分片。
 - 板 → 网页：`print` 输出与异常 traceback 通过 notify 回传；每轮结束再发一个 `\x04`。
 
+---
+
+## Phase 3 — AI 生成代码（Cloudflare Worker 代理）
+
+孩子用自然语言说需求 → Gemini 生成 MicroPython → 一键推到板子。**API key 只存在 Worker 里**，
+网页和公开仓库都碰不到。
+
+```
+iPad 网页 ──需求(无key+口令)──▶ Worker(存 GEMINI_API_KEY) ──带key──▶ Gemini API
+   ◀──────────────── 生成的 MicroPython 代码 ─────────────┘
+```
+
+### 部署 Worker（一次）
+
+```bash
+cd worker
+npx wrangler login                       # 浏览器授权 Cloudflare（一次）
+npx wrangler deploy                       # 部署，输出 Worker 地址
+npx wrangler secret put GEMINI_API_KEY    # 粘贴 Gemini key（只进 Cloudflare，别进代码/别发别人）
+npx wrangler secret put CLASS_PASSCODE    # 设个班级口令（可选，防公开地址被白嫖）
+```
+
+> Gemini key 免费申请：<https://aistudio.google.com/apikey>
+> 默认模型 `gemini-2.5-flash`；想换：`npx wrangler secret put GEMINI_MODEL`。
+> 代理 CORS 锁定到 `https://ahuamao.github.io`——换域名要改 `worker/src/worker.js` 里的 `ALLOWED_ORIGIN`。
+
+### 用起来
+
+在网页 **⚙️ 设置** 里填：**AI 服务地址** = 上面 deploy 输出的 Worker 地址，**班级口令** = 你设的口令。
+然后在 🤖 框里说"让板载 LED 闪烁 5 次" → **✨ 生成代码** → 检查 → **▶ 运行**。
+
+> ⚠️ 目前还没有"停止"按钮（Phase 2 做），所以 Worker 会提示 AI 别写 `while True` 死循环。
+> 万一板子卡住，按板子 `RST` 键即可恢复。
+
 ## 路线图
 
-- [x] **Phase 1** — BLE 通路 hello-world（当前）
-- [ ] **Phase 2** — 稳健传输协议：分片/ACK、推整个文件、停止运行、断点续传
-- [ ] **Phase 3** — 网页里接入 AI 对话生成 MicroPython 代码
+- [x] **Phase 1** — BLE 通路 hello-world
+- [ ] **Phase 2** — 稳健传输协议：分片/ACK、推整个文件、**停止运行**、断点续传
+- [x] **Phase 3** — 网页里接入 AI（Gemini）对话生成 MicroPython 代码
 - [ ] **Phase 4** — 课堂化：多板扫描选择、示例库、防死循环等安全护栏
