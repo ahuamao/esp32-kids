@@ -1,0 +1,6 @@
+name = "esp32-kids-ai"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# GEMINI_API_KEY 和 CLASS_PASSCODE 不写在这里，用 `wrangler secret put` 设置，
+# 这样 key 只存在 Cloudflare 后台，绝不进代码仓库。

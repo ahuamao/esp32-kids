@@ -8,5 +8,9 @@
 __pycache__/
 *.pyc
 
+# Node / Wrangler
+node_modules/
+.wrangler/
+
 # 本地临时
 *.log

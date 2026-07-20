@@ -13,6 +13,7 @@
       --muted: #8b949e;
       --accent: #4ac0a8;
       --accent-2: #f0a13a;
+      --ai: #a371f7;
       --danger: #e5534b;
       --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
     }
@@ -34,88 +35,92 @@
       padding: 14px 18px;
       border-bottom: 1px solid var(--line);
     }
-    header h1 {
-      font-size: 16px;
-      margin: 0;
-      letter-spacing: .5px;
-      font-weight: 600;
-    }
+    header h1 { font-size: 16px; margin: 0; letter-spacing: .5px; font-weight: 600; }
     header h1 span { color: var(--accent); }
     .status {
       margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--muted);
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted);
     }
     .dot {
       width: 9px; height: 9px; border-radius: 50%;
-      background: var(--danger);
-      box-shadow: 0 0 0 0 rgba(229,83,75,.5);
-      transition: background .2s;
+      background: var(--danger); transition: background .2s;
     }
     .dot.on { background: var(--accent); }
     main {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 14px 18px;
-      min-height: 0;
+      display: flex; flex-direction: column; gap: 12px;
+      padding: 14px 18px; min-height: 0;
     }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; }
     button {
-      font: inherit;
-      font-weight: 600;
+      font: inherit; font-weight: 600;
       border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      padding: 10px 16px;
-      border-radius: 10px;
-      cursor: pointer;
+      background: var(--panel); color: var(--text);
+      padding: 10px 16px; border-radius: 10px; cursor: pointer;
       transition: transform .06s ease, border-color .15s, background .15s, opacity .15s;
     }
     button:active { transform: translateY(1px); }
     button:disabled { opacity: .4; cursor: not-allowed; }
     button.primary { background: var(--accent); color: #05201a; border-color: transparent; }
+    button.ai { background: var(--ai); color: #150a24; border-color: transparent; }
     button.ghost:hover { border-color: var(--accent); }
-    .editor-label, .console-label {
+
+    .label {
       font-size: 12px; color: var(--muted); text-transform: uppercase;
       letter-spacing: 1px; margin-bottom: 6px;
     }
+
+    /* AI 对话区 */
+    .ai-box {
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 12px; background: linear-gradient(180deg, rgba(163,113,247,.08), transparent 60%);
+    }
+    .ai-row { display: flex; gap: 10px; }
+    .ai-row input {
+      flex: 1; min-width: 0;
+      background: var(--panel); color: var(--text);
+      border: 1px solid var(--line); border-radius: 10px;
+      padding: 12px; font: inherit; font-size: 15px;
+    }
+    .ai-row input:focus { outline: none; border-color: var(--ai); }
+
     textarea {
-      width: 100%;
-      min-height: 160px;
-      resize: vertical;
-      background: var(--panel);
-      color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 12px;
-      font-family: var(--mono);
-      font-size: 14px;
-      line-height: 1.5;
-      tab-size: 4;
+      width: 100%; min-height: 150px; resize: vertical;
+      background: var(--panel); color: var(--text);
+      border: 1px solid var(--line); border-radius: 10px;
+      padding: 12px; font-family: var(--mono); font-size: 14px; line-height: 1.5; tab-size: 4;
     }
     textarea:focus { outline: none; border-color: var(--accent); }
+
     .console-wrap { flex: 1; display: flex; flex-direction: column; min-height: 120px; }
     #console {
-      flex: 1;
-      overflow-y: auto;
-      background: #0a0d12;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 12px;
-      font-family: var(--mono);
-      font-size: 13px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      word-break: break-word;
+      flex: 1; overflow-y: auto;
+      background: #0a0d12; border: 1px solid var(--line); border-radius: 10px;
+      padding: 12px; font-family: var(--mono); font-size: 13px; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word;
     }
     .log-err { color: var(--danger); }
     .log-sys { color: var(--accent-2); }
+    .log-ai  { color: var(--ai); }
     .log-run { color: var(--muted); }
+
+    /* 设置区 */
+    details.settings {
+      border: 1px solid var(--line); border-radius: 10px;
+      padding: 8px 12px; background: var(--panel);
+    }
+    details.settings summary {
+      cursor: pointer; font-size: 13px; color: var(--muted); user-select: none;
+    }
+    details.settings label {
+      display: block; margin: 10px 0 0; font-size: 13px; color: var(--muted);
+    }
+    details.settings input {
+      display: block; width: 100%; margin-top: 4px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -134,21 +139,39 @@
       <button id="btnClear" class="ghost">清空输出</button>
     </div>
 
+    <details class="settings" id="settings">
+      <summary>⚙️ 设置（老师填一次，存在本机）</summary>
+      <label>AI 服务地址（Cloudflare Worker）
+        <input id="setWorker" placeholder="https://esp32-kids-ai.xxx.workers.dev" autocomplete="off">
+      </label>
+      <label>班级口令（老师在 Worker 里设的，可留空）
+        <input id="setPass" placeholder="留空表示不用口令" autocomplete="off">
+      </label>
+    </details>
+
+    <div class="ai-box">
+      <div class="label">🤖 告诉 AI 你想让板子做什么</div>
+      <div class="ai-row">
+        <input id="aiInput" placeholder="例如：让板载 LED 闪烁 5 次" autocomplete="off">
+        <button id="btnGen" class="ai">✨ 生成代码</button>
+      </div>
+    </div>
+
     <div>
-      <div class="editor-label">Python 代码</div>
+      <div class="label">Python 代码（可自己改）</div>
       <textarea id="code" spellcheck="false">print("hello from ESP32 👋")
 for i in range(3):
     print("count", i)</textarea>
     </div>
 
     <div class="console-wrap">
-      <div class="console-label">板子输出</div>
+      <div class="label">板子输出</div>
       <div id="console"></div>
     </div>
   </main>
 
   <script>
-    // ---- Nordic UART Service（必须小写，和板载 main.py 对应）----
+    // ================= 蓝牙（Nordic UART Service，和板载 main.py 对应）=================
     const NUS = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
     const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // notify: 板 -> 网页
     const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // write:  网页 -> 板
@@ -156,10 +179,10 @@ for i in range(3):
     const CHUNK = 180;
 
     let device = null, rxChar = null, txChar = null;
-    let acc = [];                         // 累积板子回传的字节，遇 EOT 一次性解码
+    let acc = [];
 
     const $ = (id) => document.getElementById(id);
-    const consoleEl = $('console');
+    const consoleEl = $('console'), codeEl = $('code');
 
     function log(text, cls) {
       const span = document.createElement('span');
@@ -210,29 +233,22 @@ for i in range(3):
     function onNotify(e) {
       const bytes = new Uint8Array(e.target.value.buffer);
       for (const b of bytes) {
-        if (b === EOT) {
-          if (acc.length) flush();
-          log('— 运行结束 —\n', 'log-run');
-        } else {
-          acc.push(b);
-        }
+        if (b === EOT) { if (acc.length) flush(); log('— 运行结束 —\n', 'log-run'); }
+        else acc.push(b);
       }
     }
 
     function flush() {
       const text = new TextDecoder().decode(new Uint8Array(acc));
       acc = [];
-      // 板子回传的 traceback 里含 "Traceback"，标红提示
       log(text, /Traceback|Error/.test(text) ? 'log-err' : null);
     }
 
     async function run() {
       if (!rxChar) return;
-      const code = $('code').value;
-      const enc = new TextEncoder().encode(code);
+      const enc = new TextEncoder().encode(codeEl.value);
       const full = new Uint8Array(enc.length + 1);
-      full.set(enc);
-      full[enc.length] = EOT;
+      full.set(enc); full[enc.length] = EOT;
       log('\n▶ 运行代码…\n', 'log-run');
       try {
         for (let i = 0; i < full.length; i += CHUNK) {
@@ -243,9 +259,56 @@ for i in range(3):
       }
     }
 
+    // ================= 设置（存 localStorage）=================
+    const LS = { worker: 'esp32.workerUrl', pass: 'esp32.passcode' };
+    function loadSettings() {
+      $('setWorker').value = localStorage.getItem(LS.worker) || '';
+      $('setPass').value = localStorage.getItem(LS.pass) || '';
+    }
+    $('setWorker').addEventListener('input', e => localStorage.setItem(LS.worker, e.target.value.trim()));
+    $('setPass').addEventListener('input', e => localStorage.setItem(LS.pass, e.target.value));
+
+    // ================= AI 生成 =================
+    async function generate() {
+      const workerUrl = (localStorage.getItem(LS.worker) || '').trim();
+      if (!workerUrl) {
+        log('⚠️ 请先在"设置"里填 AI 服务地址（Worker 地址）\n', 'log-err');
+        $('settings').open = true;
+        return;
+      }
+      const prompt = $('aiInput').value.trim();
+      if (!prompt) return;
+
+      $('btnGen').disabled = true;
+      log('\n🤖 让 AI 生成代码…（' + prompt + '）\n', 'log-ai');
+      try {
+        const r = await fetch(workerUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passcode: localStorage.getItem(LS.pass) || '', prompt }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || data.error) {
+          log('AI 出错：' + (data.error || ('HTTP ' + r.status)) + (data.detail ? '\n' + data.detail : '') + '\n', 'log-err');
+          return;
+        }
+        codeEl.value = data.code;
+        log('✅ 代码已生成，看一眼没问题就点 ▶ 运行\n', 'log-ai');
+        codeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (e) {
+        log('请求失败：' + e.message + '\n', 'log-err');
+      } finally {
+        $('btnGen').disabled = false;
+      }
+    }
+
+    // ================= 事件绑定 =================
     $('btnConnect').addEventListener('click', connect);
     $('btnRun').addEventListener('click', run);
     $('btnClear').addEventListener('click', () => { consoleEl.innerHTML = ''; });
+    $('btnGen').addEventListener('click', generate);
+    $('aiInput').addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+    loadSettings();
   </script>
 </body>
 </html>
