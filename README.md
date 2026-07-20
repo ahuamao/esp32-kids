@@ -66,10 +66,11 @@ mpremote connect PORT reset
 ## Phase 1 — 在 iPad 上测试蓝牙闭环
 
 1. iPad 上安装 **Bluefy – Web BLE Browser**（App Store，免费；iOS Safari 不支持 Web Bluetooth，靠它补上）。
-2. 把 `web/index.html` 放到一个 **HTTPS** 地址打开（Web Bluetooth 需要安全上下文）。最省事：
-   - 传到 GitHub Pages / 任意静态托管，或
-   - 本机快速托管后用内网穿透给个 https 地址。
-   > 局域网 `http://内网IP` 在 Bluefy 里可能因非安全上下文被拦，优先用 https。
+2. 在 Bluefy 地址栏打开永久地址（`web/` 目录经 GitHub Actions 自动部署到 Pages）：
+
+   **<https://ahuamao.github.io/esp32-kids/>**
+
+   > 改了 `web/` 里的东西后 `git push`，Pages 自动重新部署，iPad 刷新即用。
 3. 在 Bluefy 里打开该页 → 点 **连接板子** → 选 `ESP32-Kids` → 点 **▶ 运行**。
 4. 应看到板子回传：
    ```
